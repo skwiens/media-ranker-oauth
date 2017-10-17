@@ -6,8 +6,10 @@
   <section>
     <%= link_to "Back to media ranks", root_path, class: "button" %>
     <%= link_to "Upvote", upvote_path(@work), class: "button", method: :post %>
-    <%= link_to "Edit", edit_work_path(@work), class: "button" %>
-    <%= link_to "Delete", work_path(@work), class: "alert button", method: "delete", data: { confirm: "Are you sure?" } %>
+    <% if @login_user == @work.user %>
+      <%= link_to "Edit", edit_work_path(@work), class: "button" %>
+      <%= link_to "Delete", work_path(@work), class: "alert button", method: "delete", data: { confirm: "Are you sure?" } %>
+    <% end %>
   </section>
 </article>
 

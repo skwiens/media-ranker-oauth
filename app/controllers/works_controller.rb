@@ -2,6 +2,7 @@ class WorksController < ApplicationController
   # We should always be able to tell what category
   # of work we're dealing with
   before_action :category_from_work, except: [:root, :index, :new, :create]
+
   skip_before_action :find_user, only: [:root]
 
   def root
@@ -40,6 +41,11 @@ class WorksController < ApplicationController
   end
 
   def edit
+    if @work.user != @login_user
+      flash[:status] = :failure
+      flash[:result_text] = "You do not have permission to do this"
+      redirect_to root_path
+    end
   end
 
   def update
@@ -57,6 +63,12 @@ class WorksController < ApplicationController
   end
 
   def destroy
+    if @work.user != @login_user
+      flash[:status] = :failure
+      flash[:result_text] = "You do not have permission to do this"
+      redirect_to root_path
+    end
+
     @work.destroy
     flash[:status] = :success
     flash[:result_text] = "Successfully destroyed #{@media_category.singularize} #{@work.id}"
@@ -100,4 +112,5 @@ private
     render_404 unless @work
     @media_category = @work.category.downcase.pluralize
   end
+
 end
