@@ -47,7 +47,7 @@ describe UsersController do
 
     it "succeeds for a signed in user" do
       login(@user, :github)
-      get user_path(User.first)
+      get user_path(User.find_by(username: "bob"))
       must_respond_with :success
     end
 
