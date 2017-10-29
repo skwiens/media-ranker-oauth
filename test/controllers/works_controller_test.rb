@@ -35,6 +35,61 @@ describe WorksController do
   CATEGORIES = %w(albums books movies)
   INVALID_CATEGORIES = ["nope", "42", "", "  ", "albumstrailingtext"]
 
+  describe "not logged in" do
+    it "won't go to index" do
+      get works_path
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't go to new" do
+      get new_work_path
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't create" do
+      post works_path
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't go to show" do
+      work = works(:mariner)
+      get work_path(work.id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't go to edit" do
+      work = works(:mariner)
+      get edit_work_path(work.id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won'd update a work" do
+      work = works(:mariner)
+      patch work_path(work.id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't destroy a work" do
+      work = works(:mariner)
+      delete work_path(work.id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't allow upvoting" do
+      post upvote_path(works(:mariner).id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+  end
+
   describe "index" do
     before do
       user = users(:dan)

@@ -1,6 +1,21 @@
 require 'test_helper'
 
 describe UsersController do
+  describe "not logged in" do
+    it "won't go to index" do
+      get users_path
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't go to show path" do
+      get user_path(users(:dan))
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+  end
+  
   describe "index" do
     before do
       @user = User.new(provider: "github", uid: 9999, username: "bob", email: "bob@gmail.com")
