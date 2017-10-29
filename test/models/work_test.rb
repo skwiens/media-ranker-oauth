@@ -137,14 +137,15 @@ describe Work do
     it "returns at most 10 items" do
       movies = Work.top_ten("movie")
       movies.length.must_equal 8
+      user = User.create(username: "toocool", uid: rand(9999), provider: :github)
 
-      Work.create(title: "phase 2 test movie 1", category: "movie", user: users(:dan))
+      Work.create(title: "phase 2 test movie 1", category: "movie", user: user)
       Work.top_ten("movie").length.must_equal 9
 
-      Work.create(title: "phase 2 test movie 2", category: "movie", user: users(:dan))
+      Work.create(title: "phase 2 test movie 2", category: "movie", user: user)
       Work.top_ten("movie").length.must_equal 10
 
-      Work.create(title: "phase 2 test movie 3", category: "movie", user: users(:dan))
+      Work.create(title: "phase 2 test movie 3", category: "movie", user: user)
       Work.top_ten("movie").length.must_equal 10
     end
   end

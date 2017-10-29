@@ -22,7 +22,6 @@ describe Vote do
     let (:work2) { Work.create(category: 'book', title: 'For Whom the Bell Tolls') }
 
     it "allows one user to vote for multiple works" do
-      skip
       user = User.create(username: 'chris', uid: rand(9999), provider: "github")
 
       work1 = Work.create(category: 'book', title: 'House of Leaves')
@@ -30,11 +29,11 @@ describe Vote do
 
       vote1 = Vote.new(user: user1, work: work1)
       vote1.save
+      puts "#{vote1.work.id}"
+
       vote2 = Vote.new(user: user1, work: work2)
+      puts "#{vote2.work.id}"
       # vote2.save
-      puts "ERRRORS! #{vote2.errors.inspect}"
-      puts "WORK 1: #{work1.inspect}"
-      puts "WORK 2 #{work2.inspect}"
       vote2.valid?.must_equal true
     end
 
