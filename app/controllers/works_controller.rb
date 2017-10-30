@@ -109,8 +109,11 @@ private
 
   def category_from_work
     @work = Work.find_by(id: params[:id])
-    render_404 unless @work
-    @media_category = @work.category.downcase.pluralize
+    if @work
+      @media_category = @work.category.downcase.pluralize
+    else
+      render_404 unless @work
+    end
   end
 
 end

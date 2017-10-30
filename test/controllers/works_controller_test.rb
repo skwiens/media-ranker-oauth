@@ -35,7 +35,67 @@ describe WorksController do
   CATEGORIES = %w(albums books movies)
   INVALID_CATEGORIES = ["nope", "42", "", "  ", "albumstrailingtext"]
 
+  describe "not logged in" do
+    it "won't go to index" do
+      get works_path
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't go to new" do
+      get new_work_path
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't create" do
+      post works_path
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't go to show" do
+      work = works(:mariner)
+      get work_path(work.id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't go to edit" do
+      work = works(:mariner)
+      get edit_work_path(work.id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won'd update a work" do
+      work = works(:mariner)
+      patch work_path(work.id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't destroy a work" do
+      work = works(:mariner)
+      delete work_path(work.id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+    it "won't allow upvoting" do
+      post upvote_path(works(:mariner).id)
+      must_redirect_to root_path
+      flash[:status].must_equal :failure
+      flash[:result_text].must_equal "You must be logged in to do that"
+    end
+  end
+
   describe "index" do
+    before do
+      user = users(:dan)
+      login(user, :github)
+    end
+
     it "succeeds when there are works" do
       Work.count.must_be :>, 0, "No works in the test fixtures"
       get works_path
@@ -50,6 +110,11 @@ describe WorksController do
   end
 
   describe "new" do
+    before do
+      user = users(:dan)
+      login(user, :github)
+    end
+
     it "works" do
       get new_work_path
       must_respond_with :success
@@ -57,6 +122,10 @@ describe WorksController do
   end
 
   describe "create" do
+    before do
+      user = users(:dan)
+      login(user, :github)
+    end
     it "creates a work with valid data for a real category" do
       work_data = {
         work: {
@@ -69,6 +138,7 @@ describe WorksController do
         start_count = Work.count
 
         post works_path(category), params: work_data
+
         must_redirect_to work_path(Work.last)
 
         Work.count.must_equal start_count + 1
@@ -113,6 +183,11 @@ describe WorksController do
   end
 
   describe "show" do
+    before do
+      user = users(:dan)
+      login(user, :github)
+    end
+
     it "succeeds for an extant work ID" do
       get work_path(Work.first)
       must_respond_with :success
@@ -126,8 +201,16 @@ describe WorksController do
   end
 
   describe "edit" do
-    it "succeeds for an extant work ID" do
-      get edit_work_path(Work.first)
+    before do
+      @user = users(:dan)
+      login(@user, :github)
+    end
+
+    it "succeeds if the user created the work" do
+      Work.create(title: "title", category: 'book', user: users(:dan))
+
+      work = Work.find_by(user_id: @user.id)
+      get edit_work_path(work.id)
       must_respond_with :success
     end
 
@@ -139,11 +222,17 @@ describe WorksController do
   end
 
   describe "update" do
+    before do
+      @user = users(:dan)
+      login(@user, :github)
+    end
+
     it "succeeds for valid data and an extant work ID" do
-      work = Work.first
+      work = Work.create(title: "title", category: 'book', user: users(:dan))
+
       work_data = {
         work: {
-          title: work.title + " addition"
+          title: work.title + " addition",
         }
       }
 
@@ -177,14 +266,20 @@ describe WorksController do
   end
 
   describe "destroy" do
-    it "succeeds for an extant work ID" do
-      work_id = Work.first.id
+    before do
+      user = users(:dan)
+      login(user, :github)
+    end
 
-      delete work_path(work_id)
+    it "succeeds for an extant work ID" do
+      work = Work.create(title: "title", category: 'book', user: users(:dan))
+
+
+      delete work_path(work.id)
       must_redirect_to root_path
 
       # The work should really be gone
-      Work.find_by(id: work_id).must_be_nil
+      Work.find_by(id: work.id).must_be_nil
     end
 
     it "renders 404 not_found and does not update the DB for a bogus work ID" do
@@ -199,44 +294,13 @@ describe WorksController do
   end
 
   describe "upvote" do
-    let(:user) { User.create!(username: "test_user") }
+    let(:user) { User.create!(username: "test_user", uid: rand(9999), provider: :github) }
     let(:work) { Work.first }
-
-    def login
-      post login_path, params: { username: user.username }
-      must_respond_with :redirect
-    end
-
-    def logout
-      post logout_path
-      must_respond_with :redirect
-    end
-
-    it "returns 401 unauthorized if no user is logged in" do
-      start_vote_count = work.votes.count
-
-      post upvote_path(work)
-      must_respond_with :unauthorized
-
-      work.votes.count.must_equal start_vote_count
-    end
-
-    it "returns 401 unauthorized after the user has logged out" do
-      start_vote_count = work.votes.count
-
-      login
-      logout
-
-      post upvote_path(work)
-      must_respond_with :unauthorized
-
-      work.votes.count.must_equal start_vote_count
-    end
 
     it "succeeds for a logged-in user and a fresh user-vote pair" do
       start_vote_count = work.votes.count
 
-      login
+      login(user, :github)
 
       post upvote_path(work)
       # Should be a redirect_back
@@ -247,7 +311,7 @@ describe WorksController do
     end
 
     it "returns 409 conflict if the user has already voted for that work" do
-      login
+      login(user, :github)
       Vote.create!(user: user, work: work)
 
       start_vote_count = work.votes.count
