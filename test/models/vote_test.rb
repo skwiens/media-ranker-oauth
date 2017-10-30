@@ -24,8 +24,8 @@ describe Vote do
     it "allows one user to vote for multiple works" do
       user = User.create(username: 'chris', uid: rand(9999), provider: "github")
 
-      work1 = Work.create(category: 'book', title: 'House of Leaves')
-      work2 = Work.create(category: 'book', title: 'For Whom the Bell Tolls')
+      work1 = Work.create(category: 'book', title: 'House of Leaves', user_id: users(:dan).id)
+      work2 = Work.create(category: 'book', title: 'For Whom the Bell Tolls', user_id: users(:dan).id)
 
       vote1 = Vote.new(user: user1, work: work1)
       vote1.save

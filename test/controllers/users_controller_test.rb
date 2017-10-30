@@ -15,7 +15,7 @@ describe UsersController do
       flash[:result_text].must_equal "You must be logged in to do that"
     end
   end
-  
+
   describe "index" do
     before do
       @user = User.new(provider: "github", uid: 9999, username: "bob", email: "bob@gmail.com")
